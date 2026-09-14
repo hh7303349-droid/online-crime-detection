@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - CrimeDetect AI</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        header {
+            background: #1e293b;
+            color: white;
+            padding: 18px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h2 {
+            margin: 0;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .logout {
+            background: #ef4444;
+            border: none;
+            color: white;
+            padding: 9px 15px;
+            border-radius: 7px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .welcome {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .detection-box {
+            background: white;
+            padding: 35px;
+            border-radius: 16px;
+            box-shadow: 0 5px 20px #0002;
+        }
+
+        .detection-box h2 {
+            text-align: center;
+        }
+
+        .info {
+            color: #64748b;
+            text-align: center;
+        }
+
+        textarea {
+            width: 100%;
+            height: 180px;
+            padding: 15px;
+            margin-top: 15px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 16px;
+            resize: vertical;
+        }
+
+        .detect-btn {
+            width: 100%;
+            margin-top: 18px;
+            padding: 14px;
+            border: none;
+            border-radius: 9px;
+            background: #2563eb;
+            color: white;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .detect-btn:hover {
+            background: #1d4ed8;
+        }
+
+        #result {
+            margin-top: 25px;
+        }
+
+        .result-box {
+            padding: 20px;
+            border-radius: 10px;
+            background: #f8fafc;
+            border-left: 6px solid #2563eb;
+        }
+
+        .HIGH {
+            border-left-color: #ef4444;
+        }
+
+        .MEDIUM {
+            border-left-color: #f59e0b;
+        }
+
+        .LOW {
+            border-left-color: #22c55e;
+        }
+
+        .risk {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .video-section {
+            margin-top: 35px;
+            padding-top: 25px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .video-input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+        }
+
+        .video-btn {
+            background: #7c3aed;
+        }
+
+        .video-btn:hover {
+            background: #6d28d9;
+        }
+
+        .video-result {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        .link-warning {
+            background: #fff7ed;
+            border: 1px solid #fdba74;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            word-break: break-all;
+        }
+
+        .link-warning a {
+            color: #2563eb;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        @media(max-width:700px) {
+            header {
+                padding: 15px;
+            }
+
+            nav {
+                gap: 10px;
+                font-size: 13px;
+            }
+
+            .container {
+                margin: 20px auto;
+                padding: 15px;
+            }
+
+            .detection-box {
+                padding: 22px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h2>🛡️ CrimeDetect AI</h2>
+
+    <nav>
+        <a href="profile.html">👤 Profile</a>
+        <a href="history.html">📜 History</a>
+        <button class="logout" onclick="logout()">Logout</button>
+    </nav>
+</header>
+
+<div class="container">
+
+    <div class="welcome">
+        <h1>
+            Welcome, <span id="username">User</span> 👋
+        </h1>
+
+        <p>
+            Protect yourself from online scams and cyber crimes.
+        </p>
+    </div>
+
+    <div class="detection-box">
+
+        <h2>🔍 Crime Detection</h2>
+
+        <p class="info">
+            Enter a suspicious message or link below to analyze it.
+        </p>
+
+        <textarea
+            id="message"
+            placeholder="Example: Congratulations! You have won a lottery prize. Click here to claim now..."
+        ></textarea>
+
+        <button class="detect-btn" onclick="detectCrime()">
+            🔍 Detect Crime
+        </button>
+
+        <div id="result"></div>
+
+
+        <!-- VIDEO DETECTION -->
+
+        <div class="video-section">
+
+            <h3>🎥 Video Detection</h3>
+
+            <p class="info">
+                Upload a suspicious video for analysis.
+            </p>
+
+            <input
+                type="file"
+                id="videoFile"
+                class="video-input"
+                accept="video/*"
+            >
+
+            <button
+                class="detect-btn video-btn"
+                onclick="detectVideo()"
+            >
+                🎥 Analyze Video
+            </button>
+
+            <div id="videoResult"></div>
+
+        </div>
+
+    </div>
+</div>
+
+
+<script>
+
+const token = localStorage.getItem("token");
+
+const user = JSON.parse(
+    localStorage.getItem("user") || "null"
+);
+
+
+/* LOGIN CHECK */
+
+if (!token || !user) {
+    window.location.href = "login.html";
+}
+
+
+/* USER NAME */
+
+document.getElementById("username").textContent =
+    user.name || "User";
+
+
+/* =========================
+   CRIME DETECTION
+   ========================= */
+
+async function detectCrime() {
+
+    const text =
+        document.getElementById("message").value.trim();
+
+    const result =
+        document.getElementById("result");
+
+
+    if (!text) {
+
+        result.innerHTML =
+            "<p style='color:red'>❌ Please enter a message.</p>";
+
+        return;
+    }
+
+
+    result.innerHTML =
+        "<p>🔄 Analyzing message...</p>";
+
+
+    try {
+
+        const response = await fetch(
+            "http://localhost:5000/api/detect",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    text: text,
+                    userId: user.id
+                })
+            }
+        );
+
+
+        const data = await response.json();
+
+
+        if (!data.success) {
+
+            result.innerHTML =
+                "<p style='color:red'>❌ " +
+                data.message +
+                "</p>";
+
+            return;
+        }
+
+
+        const r = data.result;
+
+
+        /* FIND URL */
+
+        const urlPattern =
+            /(https?:\/\/[^\s]+)/gi;
+
+        const links =
+            text.match(urlPattern) || [];
+
+
+        /* LINK WARNING */
+
+        let linkWarning = "";
+
+
+        if (links.length > 0) {
+
+            linkWarning = `
+                <div class="link-warning">
+
+                    🔗 <b>Link Detected</b>
+
+                    <br><br>
+
+                    ${links.map(link => `
+                        <div>
+                            <a
+                                href="${link}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                ${link}
+                            </a>
+                        </div>
+                    `).join("")}
+
+                    <br>
+
+                    ⚠️ Do not click suspicious links.
+
+                </div>
+            `;
+        }
+
+
+        /* SHOW RESULT */
+
+        result.innerHTML = `
+
+            <div class="result-box ${r.riskLevel}">
+
+                <div class="risk">
+                    🚨 Risk Level: ${r.riskLevel}
+                </div>
+
+                <p>
+                    <b>Category:</b>
+                    ${r.category}
+                </p>
+
+                <p>
+                    <b>Confidence:</b>
+                    ${r.confidence}
+                </p>
+
+                <p>
+                    <b>Suspicious Keywords:</b>
+                    ${
+                        r.suspiciousKeywords.length
+                        ? r.suspiciousKeywords.join(", ")
+                        : "None"
+                    }
+                </p>
+
+                ${linkWarning}
+
+                <p>
+                    <b>Recommendation:</b>
+                    ${r.recommendation}
+                </p>
+
+            </div>
+
+        `;
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        result.innerHTML =
+            "<p style='color:red'>❌ Cannot connect to server.</p>";
+    }
+}
+
+
+/* =========================
+   VIDEO DETECTION
+   ========================= */
+
+async function detectVideo() {
+
+    const file =
+        document.getElementById("videoFile").files[0];
+
+    const videoResult =
+        document.getElementById("videoResult");
+
+
+    if (!file) {
+
+        videoResult.innerHTML =
+            "<p style='color:red'>❌ Please select a video.</p>";
+
+        return;
+    }
+
+
+    videoResult.innerHTML =
+        "<p>🔄 Analyzing video... Please wait.</p>";
+
+
+    try {
+
+        const formData = new FormData();
+
+        formData.append("video", file);
+
+
+        const response = await fetch(
+            "http://localhost:5000/api/video/detect",
+            {
+                method: "POST",
+                body: formData
+            }
+        );
+
+
+        const data = await response.json();
+
+
+        if (!data.success) {
+
+            videoResult.innerHTML =
+                "<p style='color:red'>❌ " +
+                data.message +
+                "</p>";
+
+            return;
+        }
+
+
+        const r = data.result;
+
+
+        videoResult.innerHTML = `
+
+            <div class="video-result">
+
+                <h3>
+                    🎥 Video Detection Result
+                </h3>
+
+                <p>
+                    <b>🚨 Risk Level:</b>
+                    ${r.riskLevel}
+                </p>
+
+                <p>
+                    <b>Category:</b>
+                    ${r.category}
+                </p>
+
+                <p>
+                    <b>Confidence:</b>
+                    ${r.confidence}
+                </p>
+
+                <p>
+                    <b>Suspicious Keywords:</b>
+                    ${
+                        r.suspiciousKeywords.length
+                        ? r.suspiciousKeywords.join(", ")
+                        : "None"
+                    }
+                </p>
+
+                <p>
+                    <b>Detected Text:</b>
+                    ${r.extractedText || "No text detected"}
+                </p>
+
+                <p>
+                    <b>Recommendation:</b>
+                    ${r.recommendation}
+                </p>
+
+            </div>
+
+        `;
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        videoResult.innerHTML =
+            "<p style='color:red'>" +
+            "❌ Cannot connect to video detection server." +
+            "</p>";
+    }
+}
+
+
+/* =========================
+   LOGOUT
+   ========================= */
+
+function logout() {
+
+    localStorage.removeItem("token");
+
+    localStorage.removeItem("user");
+
+    window.location.href = "login.html";
+}
+
+</script>
+
+</body>
+</html>

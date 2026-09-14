@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Detection History</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+        }
+
+        header {
+            background: #1e293b;
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h2 {
+            margin: 0;
+        }
+
+        .back-btn {
+            background: #475569;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 7px;
+            cursor: pointer;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .box {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #1e293b;
+        }
+
+        .description {
+            color: #64748b;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: #64748b;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+
+        .history-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .history-card h3 {
+            margin-top: 0;
+            color: #1e293b;
+        }
+
+        .risk {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .high {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .low {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .message-text {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            word-wrap: break-word;
+        }
+
+        .keyword {
+            display: inline-block;
+            background: #e2e8f0;
+            padding: 5px 10px;
+            margin: 4px;
+            border-radius: 15px;
+            font-size: 13px;
+        }
+
+        .date {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .error {
+            text-align: center;
+            color: #dc2626;
+            padding: 20px;
+        }
+
+        @media (max-width: 600px) {
+
+            header {
+                padding: 15px 20px;
+            }
+
+            header h2 {
+                font-size: 18px;
+            }
+
+            .container {
+                margin: 20px auto;
+                padding: 10px;
+            }
+
+            .box {
+                padding: 20px;
+            }
+
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <header>
+
+        <h2>🛡️ Online Crime Detection</h2>
+
+        <button
+            class="back-btn"
+            onclick="goDashboard()"
+        >
+            Dashboard
+        </button>
+
+    </header>
+
+
+    <div class="container">
+
+        <div class="box">
+
+            <h1>📋 Detection History</h1>
+
+            <p class="description">
+                View your previously analysed messages and their
+                detected risk levels.
+            </p>
+
+
+            <div id="loading" class="loading">
+                ⏳ Loading detection history...
+            </div>
+
+
+            <div id="historyContainer"></div>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+        async function loadHistory() {
+
+            const loading =
+                document.getElementById("loading");
+
+            const container =
+                document.getElementById(
+                    "historyContainer"
+                );
+
+
+            try {
+
+                // Get logged-in user
+                const user =
+                    JSON.parse(
+                        localStorage.getItem("user")
+                    );
+
+
+                // Check login
+                if (!user) {
+
+                    alert(
+                        "Please login first."
+                    );
+
+                    window.location.href =
+                        "login.html";
+
+                    return;
+                }
+
+
+                // Get user ID
+                const userId =
+                    user._id || user.id;
+
+
+                if (!userId) {
+
+                    alert(
+                        "User ID not found. Please login again."
+                    );
+
+                    localStorage.removeItem("user");
+                    localStorage.removeItem("token");
+
+                    window.location.href =
+                        "login.html";
+
+                    return;
+                }
+
+
+                // Get history from backend
+                const response =
+                    await fetch(
+                        "http://localhost:5000/api/history/" +
+                        userId
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                loading.style.display =
+                    "none";
+
+
+                if (!data.success) {
+
+                    container.innerHTML =
+                        '<div class="error">' +
+                        "❌ " +
+                        data.message +
+                        "</div>";
+
+                    return;
+                }
+
+
+                // Check empty history
+                if (
+                    !data.history ||
+                    data.history.length === 0
+                ) {
+
+                    container.innerHTML =
+                        '<div class="empty">' +
+                        "📭 No detection history found." +
+                        "<br><br>" +
+                        "Go to Detection page and analyse a message." +
+                        "</div>";
+
+                    return;
+                }
+
+
+                // Display history
+                data.history.forEach(
+                    detection => {
+
+                        const card =
+                            document.createElement(
+                                "div"
+                            );
+
+                        card.className =
+                            "history-card";
+
+
+                        // Risk class
+                        let riskClass =
+                            "low";
+
+                        if (
+                            detection.riskLevel ===
+                            "HIGH"
+                        ) {
+
+                            riskClass = "high";
+
+                        } else if (
+                            detection.riskLevel ===
+                            "MEDIUM"
+                        ) {
+
+                            riskClass = "medium";
+                        }
+
+
+                        // Keywords
+                        let keywordsHTML =
+                            "";
+
+
+                        if (
+                            detection.suspiciousKeywords &&
+                            detection.suspiciousKeywords.length
+                        ) {
+
+                            detection
+                                .suspiciousKeywords
+                                .forEach(
+                                    keyword => {
+
+                                        keywordsHTML +=
+                                            '<span class="keyword">' +
+                                            keyword +
+                                            "</span>";
+
+                                    }
+                                );
+
+                        } else {
+
+                            keywordsHTML =
+                                "None";
+                        }
+
+
+                        // Date
+                        let dateText =
+                            "Date not available";
+
+
+                        if (
+                            detection.createdAt
+                        ) {
+
+                            dateText =
+                                new Date(
+                                    detection.createdAt
+                                ).toLocaleString();
+
+                        }
+
+
+                        card.innerHTML = `
+
+                            <h3>
+                                <span class="risk ${riskClass}">
+                                    ${detection.riskLevel}
+                                </span>
+                            </h3>
+
+                            <p>
+                                <strong>Category:</strong>
+                                ${detection.category}
+                            </p>
+
+                            <p>
+                                <strong>Confidence:</strong>
+                                ${detection.confidence}
+                            </p>
+
+                            <div class="message-text">
+                                <strong>Message:</strong>
+                                <br><br>
+                                ${detection.text}
+                            </div>
+
+                            <p>
+                                <strong>
+                                    Suspicious Keywords:
+                                </strong>
+                                <br>
+                                ${keywordsHTML}
+                            </p>
+
+                            <p>
+                                <strong>
+                                    Recommendation:
+                                </strong>
+                                ${detection.recommendation}
+                            </p>
+
+                            <p class="date">
+                                🕒 ${dateText}
+                            </p>
+
+                        `;
+
+
+                        container.appendChild(
+                            card
+                        );
+
+                    }
+                );
+
+
+            } catch (error) {
+
+                loading.style.display =
+                    "none";
+
+                container.innerHTML =
+                    '<div class="error">' +
+                    "❌ Cannot connect to backend server." +
+                    "</div>";
+
+                console.error(error);
+
+            }
+
+        }
+
+
+        function goDashboard() {
+
+            window.location.href =
+                "dashboard.html";
+
+        }
+
+
+        // Load history when page opens
+        loadHistory();
+
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Admin Panel</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+        }
+
+        header {
+    background: #1e293b;
+    color: white;
+    padding: 20px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header button {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+header button:hover {
+    background: #dc2626;
+}
+
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .card,
+        .box {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px #0001;
+        }
+
+        .card {
+            text-align: center;
+        }
+
+        .card h3 {
+            color: #64748b;
+        }
+
+        .card p {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .box {
+            margin-top: 30px;
+        }
+
+        .chart {
+            max-width: 600px;
+            margin: auto;
+        }
+
+        .item {
+            padding: 15px;
+            margin: 10px 0;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 700px) {
+            .cards {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>🛡️ Admin Panel</h1>
+
+    <button onclick="logout()">Logout</button>
+</header>
+
+<div class="container">
+
+    <h2>📊 Detection Statistics</h2>
+
+    <div class="cards">
+
+        <div class="card">
+            <h3>Total Detections</h3>
+            <p id="total">0</p>
+        </div>
+
+        <div class="card">
+            <h3>🔴 High Risk</h3>
+            <p id="high">0</p>
+        </div>
+
+        <div class="card">
+            <h3>🟠 Medium Risk</h3>
+            <p id="medium">0</p>
+        </div>
+
+        <div class="card">
+            <h3>🟢 Low Risk</h3>
+            <p id="low">0</p>
+        </div>
+
+    </div>
+
+
+    <div class="box">
+
+        <h2>📈 Risk Level Analysis</h2>
+
+        <div class="chart">
+            <canvas id="riskChart"></canvas>
+        </div>
+
+    </div>
+
+
+    <div class="box">
+
+        <h2>🕒 Recent Detections</h2>
+
+        <div id="recent">
+            Loading...
+        </div>
+
+    </div>
+
+
+    <div class="box">
+
+        <h2>👥 Registered Users</h2>
+
+        <div id="users">
+            Loading...
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+function logout() {
+
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    window.location.href = "login.html";
+}
+async function loadStats() {
+
+    try {
+
+        const response = await fetch(
+            "http://localhost:5000/api/admin/stats"
+        );
+
+        const data = await response.json();
+
+        if (!data.success) return;
+
+        document.getElementById("total").textContent =
+            data.totalDetections;
+
+        document.getElementById("high").textContent =
+            data.highRisk;
+
+        document.getElementById("medium").textContent =
+            data.mediumRisk;
+
+        document.getElementById("low").textContent =
+            data.lowRisk;
+
+
+        new Chart(
+            document.getElementById("riskChart"),
+            {
+                type: "doughnut",
+
+                data: {
+                    labels: [
+                        "High Risk",
+                        "Medium Risk",
+                        "Low Risk"
+                    ],
+
+                    datasets: [{
+                        data: [
+                            data.highRisk,
+                            data.mediumRisk,
+                            data.lowRisk
+                        ]
+                    }]
+                }
+            }
+        );
+
+    } catch (error) {
+
+        console.error(error);
+
+    }
+}
+
+
+async function loadRecent() {
+
+    try {
+
+        const response = await fetch(
+            "http://localhost:5000/api/admin/recent"
+        );
+
+        const data = await response.json();
+
+        const box = document.getElementById("recent");
+
+        box.innerHTML = "";
+
+        data.detections.forEach(d => {
+
+            box.innerHTML += `
+                <div class="item">
+
+                    <b>🚨 ${d.riskLevel}</b>
+
+                    <p>
+                        <b>Category:</b>
+                        ${d.category}
+                    </p>
+
+                    <p>
+                        <b>Message:</b>
+                        ${d.text}
+                    </p>
+
+                    <p>
+                        <b>Confidence:</b>
+                        ${d.confidence}
+                    </p>
+
+                    <small>
+                        🕒 ${new Date(
+                            d.createdAt
+                        ).toLocaleString()}
+                    </small>
+
+                </div>
+            `;
+
+        });
+
+    } catch (error) {
+
+        document.getElementById("recent").textContent =
+            "Unable to load recent detections.";
+
+        console.error(error);
+
+    }
+}
+
+
+async function loadUsers() {
+
+    try {
+
+        const response = await fetch(
+            "http://localhost:5000/api/admin/users"
+        );
+
+        const data = await response.json();
+
+        const box = document.getElementById("users");
+
+        box.innerHTML = "";
+
+        data.users.forEach(user => {
+
+            box.innerHTML += `
+                <div class="item">
+
+                    <b>👤 ${user.name}</b>
+
+                    <p>
+                        📧 ${user.email}
+                    </p>
+
+                </div>
+            `;
+
+        });
+
+    } catch (error) {
+
+        document.getElementById("users").textContent =
+            "Unable to load users.";
+
+        console.error(error);
+
+    }
+}
+
+
+loadStats();
+loadRecent();
+loadUsers();
+
+</script>
+
+</body>
+
+</html>
